@@ -25,8 +25,8 @@
 #
 UTORRENT_PATH=/opt/utorrent-server-alpha-v3_3/ #where you extracted your utserver executable
 LOGFILE=/opt/utorrent-server-alpha-v3_3/utorrent.log #must be a writable directory
-USER=killscr33n #any user account you can create the utorrent user if you like
-GROUP=users
+USER=vpn #any user account you can create the utorrent user if you like
+GROUP=vpn
 NICE=15
 SCRIPTNAME=/etc/init.d/utorrent #must match this file name
 
