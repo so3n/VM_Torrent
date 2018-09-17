@@ -2,7 +2,7 @@ server {
 listen 80;
 server_name 192.168.0.8;
 
-location / {
+location /gui {
     proxy_pass http://127.0.0.1:8080/gui;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
