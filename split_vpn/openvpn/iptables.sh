@@ -21,7 +21,7 @@ iptables -t mangle -A OUTPUT ! --src $LOCALIP -j MARK --set-mark 0x1
 iptables -t mangle -A OUTPUT -j CONNMARK --save-mark
 
 # allow responses
-iptables -A INPUT -i $INTERFACE -m conntrack --ctstate ESTABLISHED -j ACCEPT
+iptables -A INPUT -i $INTERFACE -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 # block everything incoming on $INTERFACE to prevent accidental exposing of ports
 iptables -A INPUT -i $INTERFACE -j REJECT
@@ -32,6 +32,8 @@ iptables -A OUTPUT -o $INTERFACE -m owner --uid-owner $VPNUSER -j ACCEPT
 
 # all packets on $INTERFACE needs to be masqueraded
 iptables -t nat -A POSTROUTING -o $INTERFACE -j MASQUERADE
+
+iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 # reject connections from predator IP going over $NETIF
 iptables -A OUTPUT ! --src $LOCALIP -o $NETIF -j REJECT
