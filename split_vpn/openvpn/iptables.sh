@@ -4,7 +4,7 @@
 
 export INTERFACE="tun0"
 export VPNUSER="vpn"
-export LOCALIP="192.168.0.8"
+export LOCALIP="192.168.1.8"
 export NETIF="enp0s3"
 
 # flushes all the iptables rules, if you have other rules to use then add them into the script
