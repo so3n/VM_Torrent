@@ -147,6 +147,7 @@ if ! [ $(id -u) = 0 ]; then
 fi
 
 set -e
+clear
 setup_env
 install_packages
 openvpn_setup
