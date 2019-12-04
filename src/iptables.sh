@@ -4,8 +4,8 @@
 
 export INTERFACE="tun0"
 export VPNUSER="vpn"
-export LOCALIP="192.168.1.8"
-export NETIF="enp0s3"
+export LOCALIP="192.168.1.100"
+export NETIF="eth0"
 
 # flushes all the iptables rules, if you have other rules to use then add them into the script
 iptables -F -t nat

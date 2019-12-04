@@ -65,10 +65,19 @@ sudo iptables -A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
 sudo apt-get install iptables-persistent -y
 sudo cp /src/iptables.sh /etc/openvpn/
 sudo chmod +x /etc/openvpn/iptables.sh
+sudo sed -i "s/192.168.1.100/$LOCALIP/" /etc/openvpn/iptables.sh
+sudo sed -i "s/eth0/$NET_IF/" /etc/openvpn/iptables.sh
+echo "showing first few lines of iptables.sh"
+head /etc/openvpn/iptables.sh
+prompt
 sudo cp /src/routing.sh /etc/openvpn/
 sudo chmod +x /etc/openvpn/routing.sh
 sudo echo "200     vpn" >> /etc/iproute2/rt_tables
 sudo cp /src/9999-vpn.conf /etc/sysctl.d/
+sudo sed -i "s/eth0/$NET_IF/" /src/9999-vpn.conf
+echo "showing first few lines of iptables.sh"
+head /src/9999-vpn.conf
+prompt
 sudo sysctl --system
 
 echo "COMPLETE...run the following to test:
