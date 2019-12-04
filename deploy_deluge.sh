@@ -8,6 +8,7 @@
 ###
 prompt()
 {
+    echo ""
     read -rsp $'Press enter to continue...\n'
 }
 
@@ -56,28 +57,25 @@ deluge_setup()
 
     beautify "Create the Systemd Unit for Deluge Daemon"
     cp src/deluged.service /etc/systemd/system/
-    systemctl enable deluge-web.service
+    systemctl enable deluged.service
+    systemctl start deluged.service
     prompt
 
     beautify "Create the Systemd Unit for Deluge Web UI"
     cp src/deluge-web.service /etc/systemd/system/
     systemctl enable deluge-web.service
+    systemctl start deluge-web.service
     prompt
 
     beautify "Make Deluge Web UI Auto Connect to Deluge Daemon"
     systemctl stop deluged.service
     systemctl stop deluge-web.service
-    sed 's/"default_daemon": ""\;/"default_daemon": "127.0.0.1:58846"/' /home/vpn/.config/deluge/web.conf
+    sed -i 's/"default_daemon": ""/"default_daemon": "127.0.0.1:58846"/' /home/vpn/.config/deluge/web.conf
     echo -e "***\nContents of /home/vpn/.config/deluge/web.conf***\n"
     cat /home/vpn/.config/deluge/web.conf
     prompt
     systemctl start deluged.service
     systemctl start deluge-web.service
-
-    echo -e "\nRefer to: Recommended Deluge Settings for Maximum Security located here for GUI settings in Deluge
-    https://www.htpcguides.com/configure-deluge-for-vpn-split-tunneling-ubuntu-16-04/
-    \n"
-    prompt
 
     beautify "Configure Deluge Remote Access with nginx Reverse Proxy"
     apt update
@@ -86,7 +84,7 @@ deluge_setup()
     cp src/reverse /etc/nginx/sites-available/
     sed -i "s/192.168.1.100/$LOCAL_IP/" /etc/nginx/sites-available/reverse
     echo -e "***\nContents of /etc/nginx/sites-available/reverse***\n"
-    cat /etc/openvpn//etc/nginx/sites-available/reverse
+    cat /etc/nginx/sites-available/reverse
     prompt
 
     ln -s /etc/nginx/sites-available/reverse /etc/nginx/sites-enabled/reverse
@@ -95,7 +93,10 @@ deluge_setup()
     prompt
     systemctl restart nginx.service
     systemctl start deluged.service
-    echo -e "\nDone"
+
+    echo -e "\nDone\n\nRefer to: Recommended Deluge Settings for Maximum Security located here for GUI settings in Deluge
+    https://www.htpcguides.com/configure-deluge-for-vpn-split-tunneling-ubuntu-16-04/
+    \n"
     prompt
 }
 
