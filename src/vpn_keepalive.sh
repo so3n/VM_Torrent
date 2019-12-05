@@ -18,16 +18,16 @@ log_sucess()
 {
     IP1="$(wget http://ipinfo.io/ip -qO -)"
     IP2="$(sudo -u vpn -i -- wget http://ipinfo.io/ip -qO -)"
-    echo "$(date +"%F %T") Ping to 8.8.8.8 successful (IP: $IP1 VPN IP: $IP2)" >> /home/killscr33n/vpnfix.log
+    echo "$(date +"%F %T") Ping to 8.8.8.8 successful (IP: $IP1 VPN IP: $IP2)" >> $LOGFILE
 }
 
 restart_vpn()
 {
-    echo "$(date +"%F %T") Ping to 8.8.8.8 failed" >> /home/killscr33n/vpnfix.log
+    echo "$(date +"%F %T") Ping to 8.8.8.8 failed" >> $LOGFILE
     
     # restart openvpn service
     sudo systemctl restart openvpn@openvpn.service
-    echo "$(date +"%F %T") VPN Restarted" >> /home/killscr33n/vpnfix.log
+    echo "$(date +"%F %T") VPN Restarted" >> $LOGFILE
     
     # wait for 20 seconds and check again
     sleep 20
@@ -37,4 +37,5 @@ restart_vpn()
 
 # Main Script
 set -e
+LOGFILE="/home/killscreen/VM_Torrent/vpn_keepalive.log"
 keep_alive

@@ -54,8 +54,6 @@ setup_var()
 deluge_setup()
 {
     beautify "Install Deluge and Web UI on Ubuntu 16.04 LTS"
-    apt update
-    apt install software-properties-common -y
     add-apt-repository ppa:deluge-team/ppa
     apt update
     apt install deluged deluge-web -y
@@ -92,7 +90,6 @@ deluge_setup()
     echo -e "\nDone"
 
     beautify "Configure Deluge Remote Access with nginx Reverse Proxy"
-    apt update
     apt install nginx -y
     unlink /etc/nginx/sites-enabled/default
     cp src/reverse /etc/nginx/sites-available/
@@ -115,16 +112,16 @@ auto_portforward_setup()
     cp src/portforward.sh /etc/openvpn/
     chmod +x /etc/openvpn/portforward.sh
     sudo echo "$DELUGE_USER:$DELUGE_PW:10" >> /home/vpn/.config/deluge/auth
-    sed -i "s\"piauser\"/\"$PIA_USER\"/" /etc/openvpn/portforward.sh
-    sed -i "s\"piapw\"/\"$PIA_PW\"/" /etc/openvpn/portforward.sh
-    sed -i "s\"delugeuser\"/\"$DELUGE_USER\"/" /etc/openvpn/portforward.sh
-    sed -i "s\"delugepw\"/\"$DELUGE_PW\"/" /etc/openvpn/portforward.sh
+    sed -i -r "s/USERNAME=\*{6}/USERNAME=$PIA_USER/" /etc/openvpn/portforward.sh
+    sed -i -r "s/PASSWORD=\*{6}/PASSWORD=$PIA_PW/" /etc/openvpn/portforward.sh
+    sed -i -r "s/DELUGEUSER=\*{6}/DELUGEUSER=$DELUGE_USER/" /etc/openvpn/portforward.sh
+    sed -i -r "s/DELUGEPASS=\*{6}/DELUGEPASS=$DELUGE_PW/" /etc/openvpn/portforward.sh
     beautify "Showing first few lines of /etc/openvpn/portforward.sh" 2
     head -n 22 /etc/openvpn/portforward.sh
     prompt
 
     beautify "Install Deluge Console"
-    apt install deluge-console
+    apt install deluge-console -y
 }
 
 ###
