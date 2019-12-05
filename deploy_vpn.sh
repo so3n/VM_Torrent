@@ -13,34 +13,36 @@ prompt()
 }
 
 beautify(){
-    echo -e "\n############### $1 ###############\n"
+    case $2 in
+        1)
+            echo -e "\n############### $1 ###############\n"
+            ;;
+        2)
+            echo -e "\n***$1***\n"
+            ;;
+        3)
+            echo -e "\n+++$1+++\n"
+            ;;
+        *)
+            echo -e "\n############### $1 ###############\n"
+            ;;
+    esac
 }
 
-setup_env()
+setup_var()
 {
-    export CURRENTDIR=$(pwd)
-    export PIA_USER="piauser"
-    export PIA_PW="abc123"
-    export NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
-    export LOCAL_IP=$(/sbin/ip -o -4 addr list $NET_IF | awk '{print $4}' | cut -d/ -f1)
+    # variables
+    CURRENTDIR=$(pwd)
+    PIA_USER="piauser"
+    PIA_PW="abc123"
+    NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
+    LOCAL_IP=$(/sbin/ip -o -4 addr list $NET_IF | awk '{print $4}' | cut -d/ -f1)
 
     if [ $SUDO_USER ]; then
         REAL_USER=$SUDO_USER
     else
         REAL_USER=$(whoami)
     fi
-
-    echo -e "
-    #################################################################
-    Current Directory: $CURRENTDIR
-    Current User:      $REAL_USER
-    PIA User:          $PIA_USER
-    PIA Password:      $PIA_PW
-    Network Interface  $NET_IF
-    Local IP           $LOCAL_IP
-    #################################################################
-    \n"
-    prompt
 }
 
 install_packages()
@@ -52,24 +54,21 @@ install_packages()
     apt install openvpn -y
     echo -e "\nDone"
 
-    echo -e "\n+++install other packages\n"
+    beautify "install other packages" 3
     apt install unzip curl -y
     echo -e "\nDone"
-    prompt
-    }
+}
 
-    openvpn_setup()
+openvpn_setup()
     {
     beautify "Create systemd Service for OpenVPN"
     cp src/openvpn@openvpn.service /etc/systemd/system/
     echo "Enabling openvpn@openvpn.service....."
     systemctl enable openvpn@openvpn.service
     echo -e "\nDone"
-    prompt
 
-    beautify " Create PIA Configuration File for Split Tunneling"
-
-    echo -e "\n+++Get the Required Certificates for PIA"
+    beautify "Create PIA Configuration File for Split Tunneling"
+    beautify "Get the Required Certificates for PIA" 3
     cd /tmp
     wget https://www.privateinternetaccess.com/openvpn/openvpn.zip
     unzip openvpn.zip
@@ -77,70 +76,63 @@ install_packages()
     cd $CURRENTDIR
     echo -e "\nDone"
 
-    echo -e "\n+++Create Modified PIA Configuration File for Split Tunneling\n"
+    beautify "Create Modified PIA Configuration File for Split Tunneling" 3
     cp src/openvpn.conf /etc/openvpn/
     echo -e "\nDone"
 
-    echo -e "\n+++Make OpenVPN Auto Login on Service Start\n"
+    beautify "Make OpenVPN Auto Login on Service Start" 3
     echo $PIA_USER | tee /etc/openvpn/login.txt
     echo $PIA_PW | tee -a /etc/openvpn/login.txt
     echo -e "\nDone"
 
-    echo -e "\n+++Configure VPN DNS Servers to Stop DNS Leaks\n"
+    beautify "Configure VPN DNS Servers to Stop DNS Leaks" 3
     cp src/update-resolv-conf /etc/openvpn/
     echo -e "\nDone"
-    prompt
 
 
     beautify "Split Tunneling with iptables and Routing Tables"
-
-    echo -e "\n+++Create vpn User\n"
+    beautify "Create vpn User" 3
     adduser --disabled-login vpn
     usermod -aG vpn $REAL_USER
     usermod -aG $REAL_USER vpn
     echo -e "\nDone"
 
-    echo -e "\n+++Block vpn user access to internet\n"
+    beautify "Block vpn user access to internet" 3
     iptables -F
     iptables -A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
     apt install iptables-persistent -y
     echo -e "\nDone"
 
-    echo -e "\n+++iptables Script for vpn User\n"
+    beautify "iptables Script for vpn User" 3
     cp src/iptables.sh /etc/openvpn/
     chmod +x /etc/openvpn/iptables.sh
     sed -i "s/192.168.1.100/$LOCAL_IP/" /etc/openvpn/iptables.sh
     sed -i "s/eth0/$NET_IF/" /etc/openvpn/iptables.sh
-    echo "***showing first few lines of iptables.sh***"
+    beautify "showing first few lines of iptables.sh" 2
     head -8 /etc/openvpn/iptables.sh
-    prompt
-
-    echo -e "\n+++Routing Rules Script for the Marked Packets\n"
+    echo -e "\n*************************************************\n" 
+    echo -e "\nDone"   
+    
+    beautify "Routing Rules Script for the Marked Packets" 3
     cp src/routing.sh /etc/openvpn/
     chmod +x /etc/openvpn/routing.sh
     echo -e "\nDone"
 
-    echo -e "\n+++Configure Split Tunnel VPN Routing\n"
+    beautify "Configure Split Tunnel VPN Routing" 3
     echo "200     vpn" | tee -a /etc/iproute2/rt_tables
-    echo "***showing last few lines of /etc/iproute2/rt_tables***"
+    beautify "showing last few lines of /etc/iproute2/rt_tables" 2
     tail /etc/iproute2/rt_tables
-    prompt
+    echo -e "\n*************************************************\n"  
+    echo -e "\nDone"  
 
-    echo -e "\n+++Change Reverse Path Filtering\n"
+    beautify "Change Reverse Path Filtering" 3
     cp src/9999-vpn.conf /etc/sysctl.d/
     sed -i "s/eth0/$NET_IF/" src/9999-vpn.conf
-    echo "***showing first few lines of iptables.sh***"
+    beautify "showing first few lines of iptables.sh" 2
     head src/9999-vpn.conf
-    prompt
+    echo -e "\n*************************************************\n"    
     sysctl --system
-
-    echo -e "\n
-    COMPLETE...reboot and then run the following to test:
-        * Test OpenVPN service:             sudo systemctl status openvpn@openvpn.service
-        * Check IP address:                 curl ipinfo.io
-        * Check IP address of VPN user:     sudo -u vpn -i -- curl ipinfo.io
-        * Check DNS Server:                 sudo -u vpn -i -- cat /etc/resolv.conf
-    \n"
+    echo -e "\nDone"
 }
 
 ###
@@ -153,6 +145,21 @@ fi
 
 set -e
 clear
-setup_env
+setup_var
+
+echo -e "
+#################################################################
+Current Directory: $CURRENTDIR
+Current User:      $REAL_USER
+PIA User:          $PIA_USER
+PIA Password:      $PIA_PW
+Network Interface: $NET_IF
+Local IP:          $LOCAL_IP
+#################################################################
+\n"
+prompt
+
 install_packages
 openvpn_setup
+
+echo -e "\nCOMPLETE...reboot system to take effect\n"
