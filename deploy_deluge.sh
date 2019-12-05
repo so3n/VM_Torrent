@@ -40,7 +40,7 @@ setup_var()
     DELUGE_PW="deluge"
 
     declare -a pia_login
-    readarray pia_login < /etc/openvpn/login.txt
+    readarray -t pia_login < /etc/openvpn/login.txt
     PIA_USER="${pia_login[0]}"
     PIA_PW="${pia_login[1]}"
 
@@ -81,6 +81,7 @@ deluge_setup()
     echo -e "\nDone"
     
     beautify "Make Deluge Web UI Auto Connect to Deluge Daemon"
+    sleep 20
     systemctl stop deluged.service
     systemctl stop deluge-web.service
     sed -i 's/"default_daemon": ""/"default_daemon": "127.0.0.1:58846"/' /home/vpn/.config/deluge/web.conf
