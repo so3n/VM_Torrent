@@ -153,9 +153,4 @@ auto_portforward_setup
 echo -e "\nCOMPLETE"
 beautify "Below steps to be complted manually"
 echo -e "  *Reboot system"
-echo -e "  * Update Deluge setting. 
-    Refer to: Recommended Deluge Settings for Maximum Security located here for GUI settings in Deluge
-    https://www.htpcguides.com/configure-deluge-for-vpn-split-tunneling-ubuntu-16-04/"
-echo -e "  * Test Port Forwarding Script
-    use command sudo bash /etc/openvpn/portforward.sh"
 echo -e "\n"
