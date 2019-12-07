@@ -8,7 +8,7 @@
 2. Reboot system
 3. Test vpn working: 
     ```
-    sudo ./test_vpn
+    sudo ./test_vpn.sh
     ```
 4. Output should show different ip address for user vpn to the main user
 
