@@ -20,7 +20,7 @@
 2. Reboot system
 3. Test port forwarding script
     ```
-    sudo \etc\openvpn\portforward.sh
+    sudo /etc/openvpn/portforward.sh
     ```
 4. Output should be vpn ip and port number
 5. Add below to crontab `sudo crontab -e` to schedule port forwarding script
@@ -32,7 +32,7 @@
 ## Setup any windows shares
 1. Run below steps
     ```
-    mkdir /media/Downloads
+    sudo mkdir /media/Downloads
     sudo chown -R nobody:nogroup /media/Downloads
     sudo chmod -R 0777 /media/Downloads
     echo -e "\n//192.168.1.2/Downloads /media/Downloads cifs username=****,password=****,uid=nobody,iocharset=utf8,vers=3.0,noperm 0 0" | sudo tee -a /etc/fstab
