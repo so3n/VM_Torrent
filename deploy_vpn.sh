@@ -51,11 +51,11 @@ install_packages()
     wget https://swupdate.openvpn.net/repos/repo-public.gpg -O - | apt-key add -
     echo "deb http://build.openvpn.net/debian/openvpn/stable xenial main" | tee -a /etc/apt/sources.list.d/openvpn.list
     apt update
-    apt install openvpn vim software-properties-common -y
+    apt install openvpn -y
     echo -e "\nDone"
 
     beautify "install other packages" 3
-    apt install unzip curl -y
+    apt install unzip curl vim software-properties-common -y
     echo -e "\nDone"
 }
 
