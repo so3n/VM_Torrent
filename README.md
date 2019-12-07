@@ -12,7 +12,7 @@
     ```
 4. Output should show different ip address for user vpn to the main user
 
-### deploy_delug.sh
+### deploy_deluge.sh
 1. Execute deploy_deluge.sh 
     ```
     sudo ./deploy_deluge.sh
