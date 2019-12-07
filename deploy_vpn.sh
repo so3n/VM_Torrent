@@ -127,9 +127,9 @@ openvpn_setup()
 
     beautify "Change Reverse Path Filtering" 3
     cp src/9999-vpn.conf /etc/sysctl.d/
-    sed -i "s/eth0/$NET_IF/" src/9999-vpn.conf
-    beautify "showing first few lines of iptables.sh" 2
-    head src/9999-vpn.conf
+    sed -i "s/eth0/$NET_IF/" /etc/sysctl.d/9999-vpn.conf
+    beautify "showing first few lines of 9999-vpn.conf" 2
+    head /etc/sysctl.d/9999-vpn.conf
     echo -e "\n*************************************************\n"    
     sysctl --system
     echo -e "\nDone"
