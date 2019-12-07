@@ -118,7 +118,6 @@ auto_portforward_setup()
     sed -i -r "s/DELUGEPASS=\*{6}/DELUGEPASS=$DELUGE_PW/" /etc/openvpn/portforward.sh
     beautify "Showing first few lines of /etc/openvpn/portforward.sh" 2
     head -n 22 /etc/openvpn/portforward.sh
-    prompt
 
     beautify "Install Deluge Console"
     apt install deluge-console -y
