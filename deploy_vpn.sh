@@ -32,7 +32,7 @@ beautify(){
 setup_var()
 {
     # variables
-    DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" 
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     PIA_USER="piauser"
     PIA_PW="abc123"
     NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
@@ -73,7 +73,7 @@ openvpn_setup()
     wget https://www.privateinternetaccess.com/openvpn/openvpn.zip
     unzip openvpn.zip
     cp crl.rsa.2048.pem ca.rsa.2048.crt /etc/openvpn/
-    cd $DIR
+    cd $SCRIPT_DIR
     echo -e "\nDone"
 
     beautify "Create Modified PIA Configuration File for Split Tunneling" 3
@@ -136,7 +136,7 @@ openvpn_setup()
     beautify "Keep Alive Script"
     cp src/vpn_keepalive.sh /etc/openvpn/
     chmod +x /etc/openvpn/vpn_keepalive.sh
-    sed -i "s|/PATH/TO/|$DIR|" /etc/openvpn/vpn_keepalive.sh
+    sed -i "s|/PATH/TO/|$SCRIPT_DIR|" /etc/openvpn/vpn_keepalive.sh
 
     echo -e "\nDone"
 
@@ -152,13 +152,13 @@ if ! [ $(id -u) = 0 ]; then
 fi
 
 set -e
-cd $DIR
+cd $SCRIPT_DIR
 clear
 setup_var
 
 echo -e "
 #################################################################
-Current Directory: $DIR
+Script Directory:  $SCRIPT_DIR
 Current User:      $REAL_USER
 PIA User:          $PIA_USER
 PIA Password:      $PIA_PW

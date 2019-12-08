@@ -18,16 +18,16 @@ log_sucess()
 {
     IP1="$(wget http://ipinfo.io/ip -qO -)"
     IP2="$(sudo -u vpn -i -- wget http://ipinfo.io/ip -qO -)"
-    echo "$(date +"%F %T") Ping to 8.8.8.8 successful (IP: $IP1 VPN IP: $IP2)" >> $LOGFILE
+    echo "$(date +"%F %T") Ping to 8.8.8.8 successful (IP: $IP1 VPN IP: $IP2)" | tee -a $LOGFILE
 }
 
 restart_vpn()
 {
-    echo "$(date +"%F %T") Ping to 8.8.8.8 failed" >> $LOGFILE
+    echo "$(date +"%F %T") Ping to 8.8.8.8 failed" | tee -a $LOGFILE
     
     # restart openvpn service
     sudo systemctl restart openvpn@openvpn.service
-    echo "$(date +"%F %T") VPN Restarted" >> $LOGFILE
+    echo "$(date +"%F %T") VPN Restarted" | tee -a $LOGFILE
     
     # wait for 20 seconds and check again
     sleep 20
