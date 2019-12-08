@@ -136,7 +136,10 @@ openvpn_setup()
     beautify "Keep Alive Script"
     cp src/vpn_keepalive.sh /etc/openvpn/
     chmod +x /etc/openvpn/vpn_keepalive.sh
-    sed -i "s|/PATH/TO/|$SCRIPT_DIR|" /etc/openvpn/vpn_keepalive.sh
+    sed -i "s|/PATH/TO|$SCRIPT_DIR|" /etc/openvpn/vpn_keepalive.sh
+    beautify "showing last few lines of vpn_keepalive.sh" 2
+    tail /etc/openvpn/vpn_keepalive.sh
+    echo -e "\n*************************************************\n" 
 
     echo -e "\nDone"
 
@@ -152,9 +155,9 @@ if ! [ $(id -u) = 0 ]; then
 fi
 
 set -e
-cd $SCRIPT_DIR
 clear
 setup_var
+cd $SCRIPT_DIR
 
 echo -e "
 #################################################################

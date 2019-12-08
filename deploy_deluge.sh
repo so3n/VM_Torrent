@@ -132,9 +132,9 @@ if ! [ $(id -u) = 0 ]; then
 fi
 
 set -e
-cd $SCRIPT_DIR
 clear
 setup_var
+cd $SCRIPT_DIR
 
 echo -e "
 #################################################################
