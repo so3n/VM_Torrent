@@ -49,7 +49,7 @@
 
 1. Add below to crontab `sudo crontab -e` to schedule keep alive script on the 15th and 45th minute every hour:
     ```
-    15,45 * * * * /PATH/TO/VM_Torrent/src/vpn_keepalive.sh
+    15,45 * * * * /etc/openvpn/vpn_keepalive.sh
     ```
 
 

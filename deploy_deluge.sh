@@ -33,7 +33,7 @@ beautify(){
 setup_var()
 {
     # variables
-    CURRENTDIR=$(pwd)
+    DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" 
     NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
     LOCAL_IP=$(/sbin/ip -o -4 addr list $NET_IF | awk '{print $4}' | cut -d/ -f1)
     DELUGE_USER="deluge"
@@ -132,12 +132,13 @@ if ! [ $(id -u) = 0 ]; then
 fi
 
 set -e
+cd $DIR
 clear
 setup_var
 
 echo -e "
 #################################################################
-Current Directory: $CURRENTDIR
+Current Directory: $DIR
 Current User:      $REAL_USER
 Network Interface: $NET_IF
 Local IP:          $LOCAL_IP

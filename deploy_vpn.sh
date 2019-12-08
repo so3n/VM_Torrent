@@ -32,7 +32,7 @@ beautify(){
 setup_var()
 {
     # variables
-    CURRENTDIR=$(pwd)
+    DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" 
     PIA_USER="piauser"
     PIA_PW="abc123"
     NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
@@ -55,7 +55,7 @@ install_packages()
     echo -e "\nDone"
 
     beautify "install other packages" 3
-    apt install unzip curl vim software-properties-common -y
+    apt install unzip curl vim htop software-properties-common -y
     echo -e "\nDone"
 }
 
@@ -73,7 +73,7 @@ openvpn_setup()
     wget https://www.privateinternetaccess.com/openvpn/openvpn.zip
     unzip openvpn.zip
     cp crl.rsa.2048.pem ca.rsa.2048.crt /etc/openvpn/
-    cd $CURRENTDIR
+    cd $DIR
     echo -e "\nDone"
 
     beautify "Create Modified PIA Configuration File for Split Tunneling" 3
@@ -132,7 +132,15 @@ openvpn_setup()
     head /etc/sysctl.d/9999-vpn.conf
     echo -e "\n*************************************************\n"    
     sysctl --system
+    
+    beautify "Keep Alive Script"
+    cp src/vpn_keepalive.sh /etc/openvpn/
+    chmod +x /etc/openvpn/vpn_keepalive.sh
+    sed -i "s|/PATH/TO/|$DIR|" /etc/openvpn/vpn_keepalive.sh
+
     echo -e "\nDone"
+
+
 }
 
 ###
@@ -144,12 +152,13 @@ if ! [ $(id -u) = 0 ]; then
 fi
 
 set -e
+cd $DIR
 clear
 setup_var
 
 echo -e "
 #################################################################
-Current Directory: $CURRENTDIR
+Current Directory: $DIR
 Current User:      $REAL_USER
 PIA User:          $PIA_USER
 PIA Password:      $PIA_PW

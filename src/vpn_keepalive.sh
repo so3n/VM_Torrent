@@ -37,5 +37,5 @@ restart_vpn()
 
 # Main Script
 set -e
-LOGFILE="/home/killscreen/VM_Torrent/vpn_keepalive.log"
+LOGFILE="/PATH/TO/vpn_keepalive.log"
 keep_alive
