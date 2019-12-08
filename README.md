@@ -36,7 +36,7 @@
     sudo chown -R nobody:nogroup /media/Downloads
     sudo chmod -R 0777 /media/Downloads
     echo -e "\n//192.168.1.2/Downloads /media/Downloads cifs username=****,password=****,uid=nobody,iocharset=utf8,vers=3.0,noperm 0 0" | sudo tee -a /etc/fstab
-    mount /media/Downloads
+    sudo mount /media/Downloads
     ```
 
 ## Configure Deluge settings in Web GUI
