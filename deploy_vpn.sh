@@ -41,8 +41,8 @@ install_packages()
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Install Packages${NC}\n"
     wget https://swupdate.openvpn.net/repos/repo-public.gpg -O - | apt-key add -
     echo "deb http://build.openvpn.net/debian/openvpn/stable xenial main" | tee -a /etc/apt/sources.list.d/openvpn.list
-    apt update
-    apt install openvpn unzip curl vim htop software-properties-common -y
+    apt-get update
+    apt-get install openvpn unzip curl vim htop software-properties-common -y
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 }
 
@@ -88,7 +88,7 @@ openvpn_setup()
     iptables -A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
 	echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
 	echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
-    apt install iptables-persistent -y
+    apt-get install iptables-persistent -y
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') iptables Script for vpn User${NC}\n"
