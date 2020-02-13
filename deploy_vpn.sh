@@ -9,7 +9,8 @@ setup_env()
     PIA_PW="abc123"
     NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
     LOCAL_IP=$(/sbin/ip -o -4 addr list $NET_IF | awk '{print $4}' | cut -d/ -f1)
-	
+    DELUGE_USER="deluge"
+    DELUGE_PW="deluge"
     RED="\033[0;31m"
     GREEN="\033[0;32m"
     YELLOW="\033[1;33m"
@@ -96,7 +97,7 @@ openvpn_setup()
     chmod +x /etc/openvpn/iptables.sh
     sed -i "s/192.168.1.100/$LOCAL_IP/" /etc/openvpn/iptables.sh
     sed -i "s/eth0/$NET_IF/" /etc/openvpn/iptables.sh
-    # echo -e "showing first few lines of iptables.sh" 2
+    # echo -e "showing first few lines of iptables.sh${NC}\n"
     # head -8 /etc/openvpn/iptables.sh
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"   
     
@@ -107,14 +108,14 @@ openvpn_setup()
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Configure Split Tunnel VPN Routing${NC}\n"
     echo "200     vpn" | tee -a /etc/iproute2/rt_tables
-    # echo -e "showing last few lines of /etc/iproute2/rt_tables" 2
+    # echo -e "showing last few lines of /etc/iproute2/rt_tables${NC}\n"
     # tail /etc/iproute2/rt_tables
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"  
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Change Reverse Path Filtering${NC}\n"
     cp src/9999-vpn.conf /etc/sysctl.d/
     sed -i "s/eth0/$NET_IF/" /etc/sysctl.d/9999-vpn.conf
-    # echo -e "showing first few lines of 9999-vpn.conf" 2
+    # echo -e "showing first few lines of 9999-vpn.conf${NC}\n"
     # head /etc/sysctl.d/9999-vpn.conf   
     sysctl --system
     
@@ -123,9 +124,83 @@ openvpn_setup()
     cp src/vpn_keepalive.sh /etc/openvpn/
     chmod +x /etc/openvpn/vpn_keepalive.sh
     sed -i "s|/PATH/TO|$SCRIPT_DIR|" /etc/openvpn/vpn_keepalive.sh
-    # echo -e "showing last few lines of vpn_keepalive.sh" 2
+    # echo -e "showing last few lines of vpn_keepalive.sh${NC}\n"
     # tail /etc/openvpn/vpn_keepalive.sh
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
+}
+
+deluge_setup()
+{
+    echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Install Deluge and Web UI on Ubuntu 16.04 LTS${NC}\n"
+    add-apt-repository ppa:deluge-team/ppa -y
+    apt-get update
+    apt-get install deluged deluge-web -y
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
+    
+    echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Configure Deluge Logging${NC}\n"
+    mkdir -p /var/log/deluge
+    chown -R vpn:vpn /var/log/deluge
+    chmod -R 770 /var/log/deluge
+    cp src/deluge /etc/logrotate.d/
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
+
+    echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Create the Systemd Unit for Deluge Daemon${NC}\n"
+    cp src/deluged.service /etc/systemd/system/
+    systemctl enable deluged.service
+    systemctl start deluged.service
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
+    
+    echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Create the Systemd Unit for Deluge Web UI${NC}\n"
+    cp src/deluge-web.service /etc/systemd/system/
+    systemctl enable deluge-web.service
+    systemctl start deluge-web.service
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
+    
+    echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Make Deluge Web UI Auto Connect to Deluge Daemon${NC}\n"
+    sleep 20
+    systemctl stop deluged.service
+    systemctl stop deluge-web.service
+    sed -i 's/"default_daemon": ""/"default_daemon": "127.0.0.1:58846"/' /home/vpn/.config/deluge/web.conf
+    # echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Contents of /home/vpn/.config/deluge/web.conf${NC}\n"
+    # cat /home/vpn/.config/deluge/web.conf
+    systemctl start deluged.service
+    systemctl start deluge-web.service
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
+
+    echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Configure Deluge Remote Access with nginx Reverse Proxy${NC}\n"
+    apt-get update
+    apt-get install nginx -y
+    unlink /etc/nginx/sites-enabled/default
+    cp src/reverse /etc/nginx/sites-available/
+    sed -i "s/192.168.1.100/$LOCAL_IP/" /etc/nginx/sites-available/reverse
+    # echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Contents of /etc/nginx/sites-available/reverse${NC}\n"
+    # cat /etc/nginx/sites-available/reverse
+    ln -s /etc/nginx/sites-available/reverse /etc/nginx/sites-enabled/reverse
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
+    
+    echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Test the nginx configuration is valid${NC}\n"
+    nginx -t
+    systemctl restart nginx.service
+    systemctl start deluged.service
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
+}
+
+auto_portforward_setup()
+{   
+    echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Configure Auto Port Forward PIA VPN for Deluge${NC}\n"
+    cp src/portforward.sh /etc/openvpn/
+    chmod +x /etc/openvpn/portforward.sh
+    sudo echo "$DELUGE_USER:$DELUGE_PW:10" >> /home/vpn/.config/deluge/auth
+    sed -i -r "s/USERNAME=\*{6}/USERNAME=$PIA_USER/" /etc/openvpn/portforward.sh
+    sed -i -r "s/PASSWORD=\*{6}/PASSWORD=$PIA_PW/" /etc/openvpn/portforward.sh
+    sed -i -r "s/DELUGEUSER=\*{6}/DELUGEUSER=$DELUGE_USER/" /etc/openvpn/portforward.sh
+    sed -i -r "s/DELUGEPASS=\*{6}/DELUGEPASS=$DELUGE_PW/" /etc/openvpn/portforward.sh
+    # echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Showing first few lines of /etc/openvpn/portforward.sh${NC}\n"
+    # head -n 22 /etc/openvpn/portforward.sh
+
+    echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Install Deluge Console${NC}\n"
+    apt-get update
+    apt-get install deluge-console -y
 }
 
 prompt()
@@ -153,4 +228,6 @@ setup_env
 # prompt
 install_packages
 openvpn_setup
+deluge_setup
+auto_portforward_setup
 echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') COMPLETE...reboot system to take effect${NC}\n"
