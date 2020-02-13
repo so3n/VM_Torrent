@@ -78,7 +78,7 @@ openvpn_setup()
 
     # Split Tunneling with iptables and Routing Tables
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Create vpn User${NC}\n"
-    adduser --disabled-login vpn
+    adduser --disabled-login --gecos "" vpn
     usermod -aG vpn $REAL_USER
     usermod -aG $REAL_USER vpn
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
@@ -86,6 +86,8 @@ openvpn_setup()
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Block vpn user access to internet${NC}\n"
     iptables -F
     iptables -A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
+	echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
+	echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
     apt install iptables-persistent -y
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
@@ -146,9 +148,9 @@ fi
 
 set -e
 trap error ERR
-clear
+
 setup_env
-prompt
+# prompt
 install_packages
 openvpn_setup
 echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') COMPLETE...reboot system to take effect${NC}\n"
