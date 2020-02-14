@@ -5,16 +5,17 @@
 setup_env()
 {
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    LOG_FILE="$SCRIPT_DIR/vm_torrent.log" 
     PIA_USER="piauser"
     PIA_PW="abc123"
     NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
     LOCAL_IP=$(/sbin/ip -o -4 addr list $NET_IF | awk '{print $4}' | cut -d/ -f1)
     DELUGE_USER="deluge"
     DELUGE_PW="deluge"
-    RED="\033[0;31m"
-    GREEN="\033[0;32m"
-    YELLOW="\033[1;33m"
-    NC="\033[0m" # No Color
+    RED="\e[31m"
+    GREEN="\e[32m"
+    YELLOW="\e[93m"
+    NC="\e[0m" # No Color
 
     if [ $SUDO_USER ]; then
         REAL_USER=$SUDO_USER
@@ -36,8 +37,10 @@ Local IP:          $LOCAL_IP
     ${NC}\n"
 }
 
-install_packages()
+openvpn_setup()
 {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') openvpn_setup: start" >> $LOG_FILE
+
     # Install Packages
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Install Packages${NC}\n"
     wget https://swupdate.openvpn.net/repos/repo-public.gpg -O - | apt-key add -
@@ -45,10 +48,7 @@ install_packages()
     apt-get update
     apt-get install openvpn unzip curl vim htop software-properties-common -y
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
-}
 
-openvpn_setup()
-{
     # Create systemd Service for OpenVPN
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Enabling openvpn@openvpn.service${NC}\n"
     cp src/openvpn@openvpn.service /etc/systemd/system/
@@ -126,11 +126,15 @@ openvpn_setup()
     sed -i "s|/PATH/TO|$SCRIPT_DIR|" /etc/openvpn/vpn_keepalive.sh
     # echo -e "showing last few lines of vpn_keepalive.sh${NC}\n"
     # tail /etc/openvpn/vpn_keepalive.sh
+
+    echo "$(date '+%Y-%m-%d %H:%M:%S') openvpn_setup: completed" >> $LOG_FILE
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 }
 
 deluge_setup()
 {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') deluge_setup: start" >> $LOG_FILE
+
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Install Deluge and Web UI on Ubuntu 16.04 LTS${NC}\n"
     add-apt-repository ppa:deluge-team/ppa -y
     apt-get update
@@ -183,10 +187,8 @@ deluge_setup()
     systemctl restart nginx.service
     systemctl start deluged.service
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
-}
 
-auto_portforward_setup()
-{   
+    # Configure Auto Port Forward PIA VPN for Deluge
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Configure Auto Port Forward PIA VPN for Deluge${NC}\n"
     cp src/portforward.sh /etc/openvpn/
     chmod +x /etc/openvpn/portforward.sh
@@ -197,21 +199,38 @@ auto_portforward_setup()
     sed -i -r "s/DELUGEPASS=\*{6}/DELUGEPASS=$DELUGE_PW/" /etc/openvpn/portforward.sh
     # echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Showing first few lines of /etc/openvpn/portforward.sh${NC}\n"
     # head -n 22 /etc/openvpn/portforward.sh
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Install Deluge Console${NC}\n"
     apt-get update
     apt-get install deluge-console -y
-}
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
-prompt()
-{
-    echo ""
-    read -rsp $'Press enter to continue...\n'
+    echo "$(date '+%Y-%m-%d %H:%M:%S') deluge_setup: completed" >> $LOG_FILE
 }
 
 error() {
     echo -e "${RED}$(date '+%Y-%m-%d %H:%M:%S') Exiting due to Error${NC}\n"
 }
+
+menu() {
+    options=("OpenVPN" "Deluge" "All" "Quit") 
+    PS3=$'\n\e[36mPlease enter your choice: \e[0m'
+    
+    while true; do
+        select opt in "${options[@]}"; do
+            case $opt in
+                "OpenVPN") openvpn_setup; break ;;
+                "Deluge") deluge_setup; break;;
+                "All") openvpn_setup; deluge_setup; break ;;
+                "Quit") break 2 ;;
+                *) echo 'Invalid input' >&2
+            esac
+            echo 'Press Enter to redisplay menu' >&2
+        done
+    done
+}
+
 
 
 ### LET'S DO THIS!
@@ -225,9 +244,9 @@ set -e
 trap error ERR
 
 setup_env
-# prompt
-install_packages
-openvpn_setup
-deluge_setup
-auto_portforward_setup
-echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') COMPLETE...reboot system to take effect${NC}\n"
+touch $LOG_FILE
+menu
+# openvpn_setup
+# deluge_setup
+# auto_portforward_setup
+echo 'Bye!'
