@@ -1,17 +1,32 @@
 #!/bin/bash
 # Based on https://www.htpcguides.com/force-torrent-traffic-vpn-split-tunnel-debian-8-ubuntu-16-04/
 
+usage() {
+    echo "Usage: ./setup.sh [OPTION]"
+    echo ""
+    echo "    -i  LOCAL_IP     Manually specify LOCAL_IP"
+    echo "    -f  NET_IF       Manually specify network interface NET_IF"
+    echo "    -n               Non-interactive Mode"
+    echo "    -p  USER:PWD     PIA user and password in format USER:PWD"
+    echo "                      If option not used, defaults to ****:**** to be "
+    echo "                      manually updated later"
+    echo "    -d  USER:PWD     Override USER:PWD to use for deluge daemon in the"
+    echo "                       auto portforward script. Default is deluge:deluge"
+    echo ""
+}
 
-setup_env()
+setup_var()
 {
+    # variables to be used by this script
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     LOG_FILE="$SCRIPT_DIR/vm_torrent_install.log"
-    PIA_USER="piauser"
-    PIA_PW="abc123"
     NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
     LOCAL_IP=$(/sbin/ip -o -4 addr list $NET_IF | awk '{print $4}' | cut -d/ -f1)
+    PIA_USER="piauser"
+    PIA_PW="abc123"
     DELUGE_USER="deluge"
     DELUGE_PW="deluge"
+    NON_INTERACTIVE=0
     RED="\e[31m"
     GREEN="\e[32m"
     YELLOW="\e[93m"
@@ -22,19 +37,6 @@ setup_env()
     else
         REAL_USER=$(whoami)
     fi
-
-    cd $SCRIPT_DIR
-
-    echo -e "
-#################################################################
-Script Directory:  $SCRIPT_DIR
-Current User:      $REAL_USER
-PIA User:          $PIA_USER
-PIA Password:      $PIA_PW
-Network Interface: $NET_IF
-Local IP:          $LOCAL_IP
-#################################################################
-    ${NC}\n"
 }
 
 openvpn_setup()
@@ -138,6 +140,10 @@ openvpn_setup()
 
 deluge_setup()
 {
+    if ! grep -q "openvpn_setup: completed" $LOG_FILE; then
+        echo -e "\n${RED}Install OpenVPN first${NC}\n"
+        return 0
+    fi
 
     if grep -q "deluge_setup: completed" $LOG_FILE; then
         echo -e "\n${RED}This script has already installed Deluge previously${NC}\n"
@@ -225,15 +231,16 @@ error() {
 }
 
 menu() {
-    options=("OpenVPN" "Deluge" "All" "Quit")
-    PS3=$'\n\e[36mWhat do we want to install? \e[0m'
+    echo ""
+    options=("Install OpenVPN" "Install Deluge" "Install All" "Quit")
+    PS3=$'\n\e[36mChoose an option (1-4): \e[0m'
 
     while true; do
         select opt in "${options[@]}"; do
             case $opt in
-                "OpenVPN") openvpn_setup; break ;;
-                "Deluge") deluge_setup; break;;
-                "All") openvpn_setup; deluge_setup; break ;;
+                "Install OpenVPN") openvpn_setup; break ;;
+                "Install Deluge") deluge_setup; break;;
+                "Install All") openvpn_setup; deluge_setup; break ;;
                 "Quit") break 2 ;;
                 *) echo "Oh No! That's not a valid option" >&2
             esac
@@ -243,8 +250,7 @@ menu() {
 }
 
 
-
-### LET'S DO THIS!
+### LET'S RUN THIS!
 
 if ! [ $(id -u) = 0 ]; then
    echo "The script needs to be run as root." >&2
@@ -253,11 +259,70 @@ fi
 
 set -e
 trap error ERR
+setup_var
 
-setup_env
+# grab optional arguments
+while getopts ":hi:f:np:d:" opt; do
+    case ${opt} in
+        i)  LOCAL_IP=$OPTARG
+            ;;
+        f)  NET_IF=$OPTARG
+            ;;
+        n)  NON_INTERACTIVE=1
+            ;;
+        p)  IFS=':' read -r -a array <<< $OPTARG
+            PIA_USER="${array[0]}"
+            PIA_PW="${array[1]}"
+            ;;
+        d)  IFS=':' read -r -a array <<< $OPTARG
+            DELUGE_USER="${array[0]}"
+            DELUGE_PW="${array[1]}"
+            ;;
+        h)
+            usage
+            exit 1
+            ;;
+        \? )
+            echo "Invalid option: $OPTARG" 1>&2
+            usage
+            exit 1
+            ;;
+        : )
+            echo "Invalid option: $OPTARG requires an argument" 1>&2
+            usage
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND -1))
+
+# print variables
+echo -e "${GREEN}"
+echo "  _   ____  ___ ______                      __ "
+echo " | | / /  |/  //_  __/__  ___________ ___  / /_"
+echo " | |/ / /|_/ /  / / / _ \/ __/ __/ -_) _ \/ __/"
+echo " |___/_/  /_/__/_/  \___/_/ /_/  \__/_//_/\__/ "
+echo "           /___/                               "
+echo -e "${NC}"
+echo -e "${YELLOW}Script Directory:      ${GREEN}$SCRIPT_DIR"
+echo -e "${YELLOW}Current User:          ${GREEN}$REAL_USER"
+echo -e "${YELLOW}Local IP:              ${GREEN}$LOCAL_IP"
+echo -e "${YELLOW}Network Interface:     ${GREEN}$NET_IF"
+echo -e "${YELLOW}PIA User:              ${GREEN}$PIA_USER"
+echo -e "${YELLOW}PIA Password:          ${GREEN}$PIA_PW"
+echo -e "${YELLOW}Deluge User:           ${GREEN}$DELUGE_USER"
+echo -e "${YELLOW}Deluge Password:       ${GREEN}$DELUGE_PW"
+echo -e "${NC}"
+
+cd $SCRIPT_DIR
 touch $LOG_FILE
-menu
-# openvpn_setup
-# deluge_setup
-# auto_portforward_setup
-echo 'Bye!'
+
+if [ $NON_INTERACTIVE -eq 1 ]; then
+    openvpn_setup
+    deluge_setup
+else
+    menu
+    echo 'Bye!'
+fi
+
+
