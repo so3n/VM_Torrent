@@ -5,7 +5,7 @@
 setup_env()
 {
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    LOG_FILE="$SCRIPT_DIR/vm_torrent.log"
+    LOG_FILE="$SCRIPT_DIR/vm_torrent_install.log"
     PIA_USER="piauser"
     PIA_PW="abc123"
     NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
@@ -39,6 +39,11 @@ Local IP:          $LOCAL_IP
 
 openvpn_setup()
 {
+    if grep -q "openvpn_setup: completed" $LOG_FILE; then
+        echo -e "\n${RED}This script has already installed openvpn previously${NC}\n"
+        return 0
+    fi
+
     echo "$(date '+%Y-%m-%d %H:%M:%S') openvpn_setup: start" >> $LOG_FILE
 
     # Install Packages
@@ -133,6 +138,12 @@ openvpn_setup()
 
 deluge_setup()
 {
+
+    if grep -q "deluge_setup: completed" $LOG_FILE; then
+        echo -e "\n${RED}This script has already installed Deluge previously${NC}\n"
+        return 0
+    fi
+
     echo "$(date '+%Y-%m-%d %H:%M:%S') deluge_setup: start" >> $LOG_FILE
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Install Deluge and Web UI on Ubuntu 16.04 LTS${NC}\n"
@@ -215,7 +226,7 @@ error() {
 
 menu() {
     options=("OpenVPN" "Deluge" "All" "Quit")
-    PS3=$'\n\e[36mPlease enter your choice: \e[0m'
+    PS3=$'\n\e[36mWhat do we want to install? \e[0m'
 
     while true; do
         select opt in "${options[@]}"; do
@@ -224,9 +235,9 @@ menu() {
                 "Deluge") deluge_setup; break;;
                 "All") openvpn_setup; deluge_setup; break ;;
                 "Quit") break 2 ;;
-                *) echo 'Invalid input' >&2
+                *) echo "Oh No! That's not a valid option" >&2
             esac
-            echo 'Press Enter to redisplay menu' >&2
+            echo "Press Enter to display menu again" >&2
         done
     done
 }
@@ -236,7 +247,7 @@ menu() {
 ### LET'S DO THIS!
 
 if ! [ $(id -u) = 0 ]; then
-   echo "The script need to be run as root." >&2
+   echo "The script needs to be run as root." >&2
    exit 1
 fi
 
