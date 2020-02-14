@@ -1,5 +1,9 @@
 #!/bin/bash
-# Based on https://www.htpcguides.com/force-torrent-traffic-vpn-split-tunnel-debian-8-ubuntu-16-04/
+
+# References
+# https://www.htpcguides.com/force-torrent-traffic-vpn-split-tunnel-debian-8-ubuntu-16-04/
+# https://www.htpcguides.com/configure-deluge-for-vpn-split-tunneling-ubuntu-16-04/
+# https://www.htpcguides.com/configure-auto-port-forward-pia-vpn-for-deluge/
 
 usage() {
     echo "Usage: ./setup.sh [OPTION]"
