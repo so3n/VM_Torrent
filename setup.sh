@@ -5,7 +5,7 @@
 setup_env()
 {
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    LOG_FILE="$SCRIPT_DIR/vm_torrent.log" 
+    LOG_FILE="$SCRIPT_DIR/vm_torrent.log"
     PIA_USER="piauser"
     PIA_PW="abc123"
     NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
@@ -87,8 +87,8 @@ openvpn_setup()
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Block vpn user access to internet${NC}\n"
     iptables -F
     iptables -A OUTPUT ! -o lo -m owner --uid-owner vpn -j DROP
-	echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
-	echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
+    echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
+    echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
     apt-get install iptables-persistent -y
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
@@ -99,8 +99,8 @@ openvpn_setup()
     sed -i "s/eth0/$NET_IF/" /etc/openvpn/iptables.sh
     # echo -e "showing first few lines of iptables.sh${NC}\n"
     # head -8 /etc/openvpn/iptables.sh
-    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"   
-    
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
+
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Routing Rules Script for the Marked Packets${NC}\n"
     cp src/routing.sh /etc/openvpn/
     chmod +x /etc/openvpn/routing.sh
@@ -110,15 +110,15 @@ openvpn_setup()
     echo "200     vpn" | tee -a /etc/iproute2/rt_tables
     # echo -e "showing last few lines of /etc/iproute2/rt_tables${NC}\n"
     # tail /etc/iproute2/rt_tables
-    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"  
+    echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Change Reverse Path Filtering${NC}\n"
     cp src/9999-vpn.conf /etc/sysctl.d/
     sed -i "s/eth0/$NET_IF/" /etc/sysctl.d/9999-vpn.conf
     # echo -e "showing first few lines of 9999-vpn.conf${NC}\n"
-    # head /etc/sysctl.d/9999-vpn.conf   
+    # head /etc/sysctl.d/9999-vpn.conf
     sysctl --system
-    
+
     # Keep Alive Script
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Setup Keep Alive Script${NC}\n"
     cp src/vpn_keepalive.sh /etc/openvpn/
@@ -140,7 +140,7 @@ deluge_setup()
     apt-get update
     apt-get install deluged deluge-web -y
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
-    
+
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Configure Deluge Logging${NC}\n"
     mkdir -p /var/log/deluge
     chown -R vpn:vpn /var/log/deluge
@@ -153,13 +153,13 @@ deluge_setup()
     systemctl enable deluged.service
     systemctl start deluged.service
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
-    
+
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Create the Systemd Unit for Deluge Web UI${NC}\n"
     cp src/deluge-web.service /etc/systemd/system/
     systemctl enable deluge-web.service
     systemctl start deluge-web.service
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
-    
+
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Make Deluge Web UI Auto Connect to Deluge Daemon${NC}\n"
     sleep 20
     systemctl stop deluged.service
@@ -181,7 +181,7 @@ deluge_setup()
     # cat /etc/nginx/sites-available/reverse
     ln -s /etc/nginx/sites-available/reverse /etc/nginx/sites-enabled/reverse
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
-    
+
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Test the nginx configuration is valid${NC}\n"
     nginx -t
     systemctl restart nginx.service
@@ -214,9 +214,9 @@ error() {
 }
 
 menu() {
-    options=("OpenVPN" "Deluge" "All" "Quit") 
+    options=("OpenVPN" "Deluge" "All" "Quit")
     PS3=$'\n\e[36mPlease enter your choice: \e[0m'
-    
+
     while true; do
         select opt in "${options[@]}"; do
             case $opt in

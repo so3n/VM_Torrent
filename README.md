@@ -1,19 +1,19 @@
 ## Install Steps
 
 ### deploy_vpn.sh
-1. Execute deploy_vpn.sh 
+1. Execute deploy_vpn.sh
     ```bash
     sudo ./deploy_vpn.sh
     ````
 2. Reboot system
-3. Test vpn working: 
+3. Test vpn working:
     ```bash
     sudo ./test_vpn.sh
     ```
 4. Output should show different ip address for user vpn to the main user
 
 ### deploy_deluge.sh
-1. Execute deploy_deluge.sh 
+1. Execute deploy_deluge.sh
     ```bash
     sudo ./deploy_deluge.sh
     ```
@@ -27,7 +27,7 @@
     ```bash
     @reboot sleep 60 && /etc/openvpn/portforward.sh | while IFS= read -r line; do echo "$(date) $line"; done >> /var/log/pia_portforward.log 2>&1 #PIA Port Forward
     0 */2 * * * /etc/openvpn/portforward.sh | while IFS= read -r line; do echo "$(date) $line"; done >> /var/log/pia_portforward.log 2>&1 #PIA Port Forward
-    15,45 * * * * /etc/openvpn/vpn_keepalive.sh #PIA Keep Alive sscript    
+    15,45 * * * * /etc/openvpn/vpn_keepalive.sh #PIA Keep Alive script
     ```
 
 ## Setup any windows shares

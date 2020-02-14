@@ -21,7 +21,7 @@ setup_var()
     else
         REAL_USER=$(whoami)
     fi
-    
+
     VPN_USER="vpn"
     EXT_IP=$(sudo -u $REAL_USER -i -- wget http://ipinfo.io/ip -qO -)
     VPN_IP=$(sudo -u $VPN_USER -i -- wget http://ipinfo.io/ip -qO -)
