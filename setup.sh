@@ -30,11 +30,27 @@ setup_var()
     PIA_PW="abc123"
     DELUGE_USER="deluge"
     DELUGE_PW="deluge"
+
+    # https://misc.flogisoft.com/bash/tip_colors_and_formatting
+    NC="\e[0m" # no color/remove formatting
+    BOLD="\e[1m"
     RED="\e[31m"
     GREEN="\e[32m"
-    YELLOW="\e[93m"
-    NC="\e[0m" # No Color
+    YELLOW="\e[33m"
+    BLUE="\e[34m"
+    PURPLE="\e[35m"
+    CYAN="\e[36m"
+    LIGHT_GRAY="\e[37m"
+    DARK_GRAY="\e[90m"
+    LIGHT_RED="\e[91m"
+    LIGHT_GREEN="\e[92m"
+    LIGHT_YELLOW="\e[93m"
+    LIGHT_BLUE="\e[94m"
+    LIGHT_PURPLE="\e[95m"
+    LIGHT_CYAN="\e[96m"
+    WHITE="\e[97m"
 
+    # get user
     if [ $SUDO_USER ]; then
         REAL_USER=$SUDO_USER
     else
@@ -300,21 +316,21 @@ done
 shift $((OPTIND -1))
 
 # print variables
-echo -e "${GREEN}"
+echo -e "${LIGHT_PURPLE}"
 echo "  _   ____  ___ ______                      __ "
 echo " | | / /  |/  //_  __/__  ___________ ___  / /_"
 echo " | |/ / /|_/ /  / / / _ \/ __/ __/ -_) _ \/ __/"
 echo " |___/_/  /_/__/_/  \___/_/ /_/  \__/_//_/\__/ "
 echo "           /___/                               "
 echo -e "${NC}"
-echo -e "${YELLOW}Script Directory:      ${GREEN}$SCRIPT_DIR"
-echo -e "${YELLOW}Current User:          ${GREEN}$REAL_USER"
-echo -e "${YELLOW}Local IP:              ${GREEN}$LOCAL_IP"
-echo -e "${YELLOW}Network Interface:     ${GREEN}$NET_IF"
-echo -e "${YELLOW}PIA User:              ${GREEN}$PIA_USER"
-echo -e "${YELLOW}PIA Password:          ${GREEN}$PIA_PW"
-echo -e "${YELLOW}Deluge User:           ${GREEN}$DELUGE_USER"
-echo -e "${YELLOW}Deluge Password:       ${GREEN}$DELUGE_PW"
+echo -e "${BOLD}${BLUE}Script Directory:      ${NC}${LIGHT_BLUE}$SCRIPT_DIR"
+echo -e "${BOLD}${BLUE}Current User:          ${NC}${LIGHT_BLUE}$REAL_USER"
+echo -e "${BOLD}${BLUE}Local IP:              ${NC}${LIGHT_BLUE}$LOCAL_IP"
+echo -e "${BOLD}${BLUE}Network Interface:     ${NC}${LIGHT_BLUE}$NET_IF"
+echo -e "${BOLD}${BLUE}PIA User:              ${NC}${LIGHT_BLUE}$PIA_USER"
+echo -e "${BOLD}${BLUE}PIA Password:          ${NC}${LIGHT_BLUE}$PIA_PW"
+echo -e "${BOLD}${BLUE}Deluge User:           ${NC}${LIGHT_BLUE}$DELUGE_USER"
+echo -e "${BOLD}${BLUE}Deluge Password:       ${NC}${LIGHT_BLUE}$DELUGE_PW"
 echo -e "${NC}"
 
 cd $SCRIPT_DIR
@@ -327,5 +343,3 @@ else
     menu
     echo 'Bye!'
 fi
-
-
