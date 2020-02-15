@@ -303,11 +303,12 @@ shift $((OPTIND -1))
 
 # print variables
 echo -e "${LIGHT_PURPLE}"
-echo "  _   ____  ___ ______                      __ "
-echo " | | / /  |/  //_  __/__  ___________ ___  / /_"
-echo " | |/ / /|_/ /  / / / _ \/ __/ __/ -_) _ \/ __/"
-echo " |___/_/  /_/__/_/  \___/_/ /_/  \__/_//_/\__/ "
-echo "           /___/                               "
+echo "    ____       __               _    ______  _   __"
+echo "   / __ \___  / /_  ______  ___| |  / / __ \/ | / /"
+echo "  / / / / _ \/ / / / / __ \/ _ \ | / / /_/ /  |/ / "
+echo " / /_/ /  __/ / /_/ / /_/ /  __/ |/ / ____/ /|  /  "
+echo "/_____/\___/_/\__,_/\__, /\___/|___/_/   /_/ |_/   "
+echo "                   /____/                          "
 echo -e "${NC}"
 echo -e "${BOLD}${BLUE}Script Directory:      ${NC}${LIGHT_BLUE}$SCRIPT_DIR"
 echo -e "${BOLD}${BLUE}Current User:          ${NC}${LIGHT_BLUE}$REAL_USER"

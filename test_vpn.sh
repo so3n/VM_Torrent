@@ -40,15 +40,16 @@ WHITE="\e[97m"
 
 ### Lets do this!
 
+echo -e ""
 echo -e "${BOLD}${BLUE}IP for user $REAL_USER:      ${NC}${LIGHT_BLUE}$EXT_IP"
 echo -e "${BOLD}${BLUE}IP for user $VPN_USER:       ${NC}${LIGHT_BLUE}$VPN_IP"
 echo -e "${NC}"
 
-echo -e "${GREEN}Querying ipinfo.io for user: $REAL_USER${NC}"
+echo -e "\n${GREEN}Querying ipinfo.io for user: $REAL_USER${NC}"
 sudo -u $REAL_USER -i -- curl ipinfo.io
 
-echo -e "${GREEN}Querying ipinfo.io for user: $VPN_USER${NC}"
+echo -e "\n${GREEN}Querying ipinfo.io for user: $VPN_USER${NC}"
 sudo -u $VPN_USER -i -- curl ipinfo.io
 
-echo -e "${GREEN}Displaying /etc/resolv.conf for user: $REAL_USER${NC}"
+echo -e "\n${GREEN}Displaying /etc/resolv.conf for user: $REAL_USER${NC}"
 sudo -u $VPN_USER -i -- cat /etc/resolv.conf
