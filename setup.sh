@@ -30,7 +30,6 @@ setup_var()
     PIA_PW="abc123"
     DELUGE_USER="deluge"
     DELUGE_PW="deluge"
-    NON_INTERACTIVE=0
     RED="\e[31m"
     GREEN="\e[32m"
     YELLOW="\e[93m"
@@ -45,7 +44,7 @@ setup_var()
 
 openvpn_setup()
 {
-    if grep -q "openvpn_setup: completed" $LOG_FILE; then
+    if [ -n "$(grep 'openvpn_setup: completed' $LOG_FILE)" ]; then
         echo -e "\n${RED}This script has already installed openvpn previously${NC}\n"
         return 0
     fi
@@ -144,12 +143,12 @@ openvpn_setup()
 
 deluge_setup()
 {
-    if ! grep -q "openvpn_setup: completed" $LOG_FILE; then
+    if [ -z "$(grep 'openvpn_setup: completed' $LOG_FILE)" ]; then
         echo -e "\n${RED}Install OpenVPN first${NC}\n"
         return 0
     fi
 
-    if grep -q "deluge_setup: completed" $LOG_FILE; then
+    if [ -n "$(grep 'deluge_setup: completed' $LOG_FILE)" ]; then
         echo -e "\n${RED}This script has already installed Deluge previously${NC}\n"
         return 0
     fi
@@ -272,7 +271,7 @@ while getopts ":hi:f:np:d:" opt; do
             ;;
         f)  NET_IF=$OPTARG
             ;;
-        n)  NON_INTERACTIVE=1
+        n)  NON_INTERACTIVE=true
             ;;
         p)  IFS=':' read -r -a array <<< $OPTARG
             PIA_USER="${array[0]}"
@@ -321,7 +320,7 @@ echo -e "${NC}"
 cd $SCRIPT_DIR
 touch $LOG_FILE
 
-if [ $NON_INTERACTIVE -eq 1 ]; then
+if [ -n "$NON_INTERACTIVE" ]; then
     openvpn_setup
     deluge_setup
 else
