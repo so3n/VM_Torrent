@@ -6,19 +6,17 @@ if ! [ $(id -u) = 0 ]; then
    exit 1
 fi
 
-set -e
-
-# set variables
-VPN_USER="vpn"
-EXT_IP=$(sudo -u $REAL_USER -i -- wget http://ipinfo.io/ip -qO -)
-VPN_IP=$(sudo -u $VPN_USER -i -- wget http://ipinfo.io/ip -qO -)
-
 # get user
 if [ $SUDO_USER ]; then
     REAL_USER=$SUDO_USER
 else
     REAL_USER=$(whoami)
 fi
+
+# set variables
+VPN_USER="vpn"
+EXT_IP=$(sudo -u $REAL_USER -i -- wget http://ipinfo.io/ip -qO -)
+VPN_IP=$(sudo -u $VPN_USER -i -- wget http://ipinfo.io/ip -qO -)
 
 # https://misc.flogisoft.com/bash/tip_colors_and_formatting
 NC="\e[0m" # no color/remove formatting
