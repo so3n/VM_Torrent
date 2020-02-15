@@ -26,10 +26,10 @@ setup_var()
     LOG_FILE="$SCRIPT_DIR/vm_torrent_install.log"
     NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
     LOCAL_IP=$(/sbin/ip -o -4 addr list $NET_IF | awk '{print $4}' | cut -d/ -f1)
-    PIA_USER="piauser"
-    PIA_PW="abc123"
-    DELUGE_USER="deluge"
-    DELUGE_PW="deluge"
+    PIA_USER="piauser"      # default value if not specified with -p option
+    PIA_PW="abc123"         # default value if not specified with -p option
+    DELUGE_USER="deluge"    # can override with -d option
+    DELUGE_PW="deluge"      # can override with -d option
 
     # https://misc.flogisoft.com/bash/tip_colors_and_formatting
     NC="\e[0m" # no color/remove formatting
@@ -123,8 +123,6 @@ openvpn_setup()
     chmod +x /etc/openvpn/iptables.sh
     sed -i "s/192.168.1.100/$LOCAL_IP/" /etc/openvpn/iptables.sh
     sed -i "s/eth0/$NET_IF/" /etc/openvpn/iptables.sh
-    # echo -e "showing first few lines of iptables.sh${NC}\n"
-    # head -8 /etc/openvpn/iptables.sh
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Routing Rules Script for the Marked Packets${NC}\n"
@@ -134,15 +132,11 @@ openvpn_setup()
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Configure Split Tunnel VPN Routing${NC}\n"
     echo "200     vpn" | tee -a /etc/iproute2/rt_tables
-    # echo -e "showing last few lines of /etc/iproute2/rt_tables${NC}\n"
-    # tail /etc/iproute2/rt_tables
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Change Reverse Path Filtering${NC}\n"
     cp src/9999-vpn.conf /etc/sysctl.d/
     sed -i "s/eth0/$NET_IF/" /etc/sysctl.d/9999-vpn.conf
-    # echo -e "showing first few lines of 9999-vpn.conf${NC}\n"
-    # head /etc/sysctl.d/9999-vpn.conf
     sysctl --system
 
     # Keep Alive Script
@@ -150,8 +144,6 @@ openvpn_setup()
     cp src/vpn_keepalive.sh /etc/openvpn/
     chmod +x /etc/openvpn/vpn_keepalive.sh
     sed -i "s|/PATH/TO|$SCRIPT_DIR|" /etc/openvpn/vpn_keepalive.sh
-    # echo -e "showing last few lines of vpn_keepalive.sh${NC}\n"
-    # tail /etc/openvpn/vpn_keepalive.sh
 
     echo "$(date '+%Y-%m-%d %H:%M:%S') openvpn_setup: completed" >> $LOG_FILE
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
@@ -201,8 +193,6 @@ deluge_setup()
     systemctl stop deluged.service
     systemctl stop deluge-web.service
     sed -i 's/"default_daemon": ""/"default_daemon": "127.0.0.1:58846"/' /home/vpn/.config/deluge/web.conf
-    # echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Contents of /home/vpn/.config/deluge/web.conf${NC}\n"
-    # cat /home/vpn/.config/deluge/web.conf
     systemctl start deluged.service
     systemctl start deluge-web.service
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
@@ -213,8 +203,6 @@ deluge_setup()
     unlink /etc/nginx/sites-enabled/default
     cp src/reverse /etc/nginx/sites-available/
     sed -i "s/192.168.1.100/$LOCAL_IP/" /etc/nginx/sites-available/reverse
-    # echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Contents of /etc/nginx/sites-available/reverse${NC}\n"
-    # cat /etc/nginx/sites-available/reverse
     ln -s /etc/nginx/sites-available/reverse /etc/nginx/sites-enabled/reverse
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
@@ -233,8 +221,6 @@ deluge_setup()
     sed -i -r "s/PASSWORD=\*{6}/PASSWORD=$PIA_PW/" /etc/openvpn/portforward.sh
     sed -i -r "s/DELUGEUSER=\*{6}/DELUGEUSER=$DELUGE_USER/" /etc/openvpn/portforward.sh
     sed -i -r "s/DELUGEPASS=\*{6}/DELUGEPASS=$DELUGE_PW/" /etc/openvpn/portforward.sh
-    # echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Showing first few lines of /etc/openvpn/portforward.sh${NC}\n"
-    # head -n 22 /etc/openvpn/portforward.sh
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Install Deluge Console${NC}\n"
