@@ -33,23 +33,27 @@ Note: This has been developed on VM running 64-bit Ubuntu 16.04 installed with [
 
     ```
 
-2. Reboot system
+2. After script finishes running, if -p and -d options were not specified when running `setup.sh`:
+    * update PIA username and password in `/etc/openvpn/login.txt` and `/etc/openvpn/portforward.sh` (in lines 10-11)
+    * update deluge-daemon username and password in `/home/vpn/.config/deluge/auth` (replace deluge:deluge:10 with user:password:10) and `/etc/openvpn/portforward.sh` (in lines 20-21)
 
-3. Test vpn working:
+3. Reboot system
+
+4. Test vpn working:
     ```bash
     sudo ./test_vpn.sh
     ```
 
-4. Output should show different ip address for user vpn to the main user
+5. Output should show different ip address for user vpn to the main user
 
-5. Test port forwarding script
+6. Test port forwarding script
     ```bash
     sudo /etc/openvpn/portforward.sh
     ```
 
-6. Output should be vpn ip and port number
+7. Output should be vpn ip and port number
 
-7. Add below to crontab `sudo crontab -e` to schedule port forwarding and keep alive scripts
+8. Add below to crontab `sudo crontab -e` to schedule port forwarding and keep alive scripts
     ```bash
     @reboot sleep 60 && /etc/openvpn/portforward.sh | while IFS= read -r line; do echo "$(date) $line"; done >> /var/log/pia_portforward.log 2>&1 #PIA Port Forward
     0 */2 * * * /etc/openvpn/portforward.sh | while IFS= read -r line; do echo "$(date) $line"; done >> /var/log/pia_portforward.log 2>&1 #PIA Port Forward

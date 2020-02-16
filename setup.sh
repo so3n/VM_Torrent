@@ -12,7 +12,7 @@ usage() {
     echo "    -f  NET_IF       Manually specify network interface NET_IF"
     echo "    -n               Non-interactive Mode"
     echo "    -p  USER:PWD     PIA user and password in format USER:PWD"
-    echo "                      If option not used, defaults to ****:**** to be "
+    echo "                      If option not used, defaults to pia-username:pia-password to be "
     echo "                      manually updated later"
     echo "    -d  USER:PWD     Override USER:PWD to use for deluge daemon in the"
     echo "                       auto portforward script. Default is deluge:deluge"
@@ -26,10 +26,6 @@ setup_var()
     LOG_FILE="$SCRIPT_DIR/vm_torrent_install.log"
     NET_IF=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
     LOCAL_IP=$(/sbin/ip -o -4 addr list $NET_IF | awk '{print $4}' | cut -d/ -f1)
-    PIA_USER="piauser"      # default value if not specified with -p option
-    PIA_PW="abc123"         # default value if not specified with -p option
-    DELUGE_USER="deluge"    # can override with -d option
-    DELUGE_PW="deluge"      # can override with -d option
 
     # https://misc.flogisoft.com/bash/tip_colors_and_formatting
     NC="\e[0m" # no color/remove formatting
@@ -95,8 +91,12 @@ openvpn_setup()
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Make OpenVPN Auto Login on Service Start${NC}\n"
-    echo $PIA_USER | tee /etc/openvpn/login.txt
-    echo $PIA_PW | tee -a /etc/openvpn/login.txt
+    if [ -n "$PIA_LOGIN" ]; then
+        echo $PIA_LOGIN | sed "s|\:|\n|" | tee /etc/openvpn/login.txt
+    else
+        echo "pia-username" | tee /etc/openvpn/login.txt
+        echo "pia-password" | tee -a /etc/openvpn/login.txt
+    fi
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Configure VPN DNS Servers to Stop DNS Leaks${NC}\n"
@@ -216,11 +216,21 @@ deluge_setup()
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Configure Auto Port Forward PIA VPN for Deluge${NC}\n"
     cp src/portforward.sh /etc/openvpn/
     chmod +x /etc/openvpn/portforward.sh
-    sudo echo "$DELUGE_USER:$DELUGE_PW:10" >> /home/vpn/.config/deluge/auth
-    sed -i -r "s/USERNAME=\*{6}/USERNAME=$PIA_USER/" /etc/openvpn/portforward.sh
-    sed -i -r "s/PASSWORD=\*{6}/PASSWORD=$PIA_PW/" /etc/openvpn/portforward.sh
-    sed -i -r "s/DELUGEUSER=\*{6}/DELUGEUSER=$DELUGE_USER/" /etc/openvpn/portforward.sh
-    sed -i -r "s/DELUGEPASS=\*{6}/DELUGEPASS=$DELUGE_PW/" /etc/openvpn/portforward.sh
+    if [ -n "$DELUGE_LOGIN" ]; then
+        DELUGE_USER=$(echo "$DELUGE_LOGIN" | cut -d ":" -f 1)
+        DELUGE_PW=$(echo "$DELUGE_LOGIN" | cut -d ":" -f 2)
+        echo "$DELUGE_LOGIN:10" >> /home/vpn/.config/deluge/auth
+        sed -i -r "s/DELUGEUSER=deluge/DELUGEUSER=$DELUGE_USER/" /etc/openvpn/portforward.sh
+        sed -i -r "s/DELUGEPASS=deluge/DELUGEPASS=$DELUGE_PW/" /etc/openvpn/portforward.sh
+    else
+        echo "deluge:deluge:10" >> /home/vpn/.config/deluge/auth
+    fi
+    if [ -n "$PIA_LOGIN" ]; then  
+        PIA_USER=$(echo "$PIA_LOGIN" | cut -d ":" -f 1)
+        PIA_PW=$(echo "$PIA_LOGIN" | cut -d ":" -f 2)
+        sed -i -r "s/USERNAME=pia-username/USERNAME=$PIA_USER/" /etc/openvpn/portforward.sh
+        sed -i -r "s/PASSWORD=pia-password/PASSWORD=$PIA_PW/" /etc/openvpn/portforward.sh
+    fi
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Install Deluge Console${NC}\n"
@@ -275,13 +285,9 @@ while getopts ":hi:f:np:d:" opt; do
             ;;
         n)  NON_INTERACTIVE=true
             ;;
-        p)  IFS=':' read -r -a array <<< $OPTARG
-            PIA_USER="${array[0]}"
-            PIA_PW="${array[1]}"
+        p)  PIA_LOGIN=$OPTARG
             ;;
-        d)  IFS=':' read -r -a array <<< $OPTARG
-            DELUGE_USER="${array[0]}"
-            DELUGE_PW="${array[1]}"
+        d)  DELUGE_LOGIN=$OPTARG
             ;;
         h)
             usage
@@ -314,10 +320,6 @@ echo -e "${BOLD}${BLUE}Script Directory:      ${NC}${LIGHT_BLUE}$SCRIPT_DIR"
 echo -e "${BOLD}${BLUE}Current User:          ${NC}${LIGHT_BLUE}$REAL_USER"
 echo -e "${BOLD}${BLUE}Local IP:              ${NC}${LIGHT_BLUE}$LOCAL_IP"
 echo -e "${BOLD}${BLUE}Network Interface:     ${NC}${LIGHT_BLUE}$NET_IF"
-echo -e "${BOLD}${BLUE}PIA User:              ${NC}${LIGHT_BLUE}$PIA_USER"
-echo -e "${BOLD}${BLUE}PIA Password:          ${NC}${LIGHT_BLUE}$PIA_PW"
-echo -e "${BOLD}${BLUE}Deluge User:           ${NC}${LIGHT_BLUE}$DELUGE_USER"
-echo -e "${BOLD}${BLUE}Deluge Password:       ${NC}${LIGHT_BLUE}$DELUGE_PW"
 echo -e "${NC}"
 
 cd $SCRIPT_DIR

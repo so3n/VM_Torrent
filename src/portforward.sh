@@ -7,8 +7,8 @@
 # Set path for root Cron Job
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-USERNAME=******
-PASSWORD=******
+USERNAME=pia-username
+PASSWORD=pia-password
 VPNINTERFACE=tun0
 VPNLOCALIP=$(ifconfig $VPNINTERFACE | awk '/inet / {print $2}' | awk 'BEGIN { FS = ":" } {print $(NF)}')
 CURL_TIMEOUT=5
@@ -17,8 +17,8 @@ CLIENT_ID=$(uname -v | sha1sum | awk '{ print $1 }')
 # set to 1 if using VPN Split Tunnel
 SPLITVPN="1"
 
-DELUGEUSER=******
-DELUGEPASS=******
+DELUGEUSER=deluge
+DELUGEPASS=deluge
 DELUGEHOST=localhost
 
 #get VPNIP
