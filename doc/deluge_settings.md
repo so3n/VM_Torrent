@@ -1,34 +1,34 @@
 ### Downloads
 Example of download folders.
 
-![](img/downloads.jpg "Downloads")
+![](img/deluge_01.jpg "Downloads")
 
 
 ### Network
 Ensure all `Network Extras` unchecked for maximum security.
 
-![](img/network.jpg "Network")
+![](img/deluge_02.jpg "Network")
 
 
 ### Encryption
 Optimal level of encryption.
 
-![](img/encryption.jpg "Encryption")
+![](img/deluge_03.jpg "Encryption")
 
 
 ### Bandwidth
 [Make Deluge Automatically Stop Seeding When Download Complete](https://www.htpcguides.com/make-deluge-automatically-stop-seeding-download-complete/) 
 
-![](img/bandwidth.jpg "Bandwidth")
+![](img/deluge_04.jpg "Bandwidth")
 
 
 ### Queue
 Adjust as needed.
 
-![](img/queue.jpg "Queue")
+![](img/deluge_05.jpg "Queue")
 
 
 ### Plugins
 Needed if using Sonarr or Radarr.
 
-![](img/plugins.jpg "Queue")
+![](img/deluge_06.jpg "Queue")
