@@ -92,7 +92,7 @@ openvpn_setup()
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Make OpenVPN Auto Login on Service Start${NC}\n"
     if [ -n "$PIA_LOGIN" ]; then
-        echo $PIA_LOGIN | sed "s|\:|\n|" | tee /etc/openvpn/login.txt
+        echo $PIA_LOGIN | sed "s/:/\n/" | tee /etc/openvpn/login.txt
     else
         echo "pia-username" | tee /etc/openvpn/login.txt
         echo "pia-password" | tee -a /etc/openvpn/login.txt
@@ -121,8 +121,8 @@ openvpn_setup()
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') iptables Script for vpn User${NC}\n"
     cp src/iptables.sh /etc/openvpn/
     chmod +x /etc/openvpn/iptables.sh
-    sed -i "s/192.168.1.100/$LOCAL_IP/" /etc/openvpn/iptables.sh
-    sed -i "s/eth0/$NET_IF/" /etc/openvpn/iptables.sh
+    sed -i 's/^export LOCALIP=".*/export LOCALIP="$LOCAL_IP"/' /etc/openvpn/iptables.sh
+    sed -i 's/^export NETIF=".*/export NETIF="$NET_IF"/' /etc/openvpn/iptables.sh
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Routing Rules Script for the Marked Packets${NC}\n"
@@ -143,7 +143,7 @@ openvpn_setup()
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Setup Keep Alive Script${NC}\n"
     cp src/vpn_keepalive.sh /etc/openvpn/
     chmod +x /etc/openvpn/vpn_keepalive.sh
-    sed -i "s|/PATH/TO|$SCRIPT_DIR|" /etc/openvpn/vpn_keepalive.sh
+    sed -i "s|^LOGFILE=.*|LOGFILE=$SCRIPT_DIR/vpn_keepalive.log|" /etc/openvpn/vpn_keepalive.sh 
 
     echo "$(date '+%Y-%m-%d %H:%M:%S') openvpn_setup: completed" >> $LOG_FILE
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
@@ -202,7 +202,7 @@ deluge_setup()
     apt-get install nginx -y
     unlink /etc/nginx/sites-enabled/default
     cp src/reverse /etc/nginx/sites-available/
-    sed -i "s/192.168.1.100/$LOCAL_IP/" /etc/nginx/sites-available/reverse
+    sed -i "s/^server_name .*/server_name $LOCAL_IP\;/" /etc/nginx/sites-available/reverse
     ln -s /etc/nginx/sites-available/reverse /etc/nginx/sites-enabled/reverse
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
@@ -220,16 +220,16 @@ deluge_setup()
         DELUGE_USER=$(echo "$DELUGE_LOGIN" | cut -d ":" -f 1)
         DELUGE_PW=$(echo "$DELUGE_LOGIN" | cut -d ":" -f 2)
         echo "$DELUGE_LOGIN:10" >> /home/vpn/.config/deluge/auth
-        sed -i -r "s/DELUGEUSER=deluge/DELUGEUSER=$DELUGE_USER/" /etc/openvpn/portforward.sh
-        sed -i -r "s/DELUGEPASS=deluge/DELUGEPASS=$DELUGE_PW/" /etc/openvpn/portforward.sh
+        sed -i "s/^DELUGEUSER=.*/DELUGEUSER=$DELUGE_USER/g" /etc/openvpn/portforward.sh
+        sed -i "s/^DELUGEPASS=.*/DELUGEPASS=$DELUGE_PW/" /etc/openvpn/portforward.sh
     else
         echo "deluge:deluge:10" >> /home/vpn/.config/deluge/auth
     fi
     if [ -n "$PIA_LOGIN" ]; then  
         PIA_USER=$(echo "$PIA_LOGIN" | cut -d ":" -f 1)
         PIA_PW=$(echo "$PIA_LOGIN" | cut -d ":" -f 2)
-        sed -i -r "s/USERNAME=pia-username/USERNAME=$PIA_USER/" /etc/openvpn/portforward.sh
-        sed -i -r "s/PASSWORD=pia-password/PASSWORD=$PIA_PW/" /etc/openvpn/portforward.sh
+        sed -i "s/^USERNAME=.*/USERNAME=$PIA_USER/" /etc/openvpn/portforward.sh
+        sed -i "s/^PASSWORD=.*/PASSWORD=$PIA_PW/" /etc/openvpn/portforward.sh
     fi
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
