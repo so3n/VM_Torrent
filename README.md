@@ -9,15 +9,14 @@ This script was built based on the following guides:
 
 ## Requirements
 
-**Operating System:** Ubuntu 16.04 LTS 64-bit
-
-Note: This has been developed on VM running 64-bit Ubuntu 16.04 installed with [minimal iso image](https://help.ubuntu.com/community/Installation/MinimalCD).
+* **Operating System:** Ubuntu 16.04 LTS 64-bit* *(This script was developed on a VM running 64-bit Ubuntu 16.04 installed with [minimal iso image](https://help.ubuntu.com/community/Installation/MinimalCD))*
+* **VPN:** Account with [Private Internet Access](https://www.privateinternetaccess.com/) (PIA)
 
 ## Install steps
 
 1. Download or clone this repository and run `setup.sh` on a machine with Ubuntu 16.04.
    
-   Example: `./setup.sh -i 192.168.1.100 -f eth0 -n -p piauser:abc123 -d deluge:deluge`
+   Example: `./setup.sh -i 192.168.1.100 -f eth0 -n -p piauser:piapwd -d deluge:deluge -s swiss.privateinternetaccess.com`
 
     ```
     Usage: ./setup.sh [OPTION]
@@ -26,14 +25,16 @@ Note: This has been developed on VM running 64-bit Ubuntu 16.04 installed with [
         -f  NET_IF       Manually specify network interface NET_IF
         -n               Non-interactive Mode
         -p  USER:PWD     PIA user and password in format USER:PWD
-                            If option not used, defaults to piauser:abc123 to be 
-                            manually updated later
+                          If option not used, defaults to piauser:piapwd to be 
+                          manually updated later
         -d  USER:PWD     Override USER:PWD to use for deluge daemon in the
-                            auto portforward script. Default is deluge:deluge
-
+                          auto portforward script. Default is deluge:deluge
+        -s  PIA_SERVER   VPN Server location to use with PIA. Refer to 
+                          pia-servers.txt for list of valid servers. If option 
+                          not used, defaults to swiss.privateinternetaccess.com
     ```
 
-2. After script finishes running, if -p and -d options were not specified when running `setup.sh`:
+2. After script finishes running, if -p and -d options were not specified when running `setup.sh` then you may want to:
     * update PIA username and password in `/etc/openvpn/login.txt` and `/etc/openvpn/portforward.sh` (in lines 10-11)
     * update deluge-daemon username and password in `/home/vpn/.config/deluge/auth` (replace deluge:deluge:10 with user:password:10) and `/etc/openvpn/portforward.sh` (in lines 20-21)
 

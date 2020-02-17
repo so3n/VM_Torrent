@@ -12,10 +12,13 @@ usage() {
     echo "    -f  NET_IF       Manually specify network interface NET_IF"
     echo "    -n               Non-interactive Mode"
     echo "    -p  USER:PWD     PIA user and password in format USER:PWD"
-    echo "                      If option not used, defaults to pia-username:pia-password to be "
+    echo "                      If option not used, defaults to piauser:piapwd to be"
     echo "                      manually updated later"
     echo "    -d  USER:PWD     Override USER:PWD to use for deluge daemon in the"
-    echo "                       auto portforward script. Default is deluge:deluge"
+    echo "                      auto portforward script. Default is deluge:deluge"
+    echo "    -s  PIA_SERVER   VPN Server location to use with PIA. Refer to"
+    echo "                      pia-servers.txt for list of valid servers. If option"
+    echo "                      not used, defaults to swiss.privateinternetaccess.com"
     echo ""
 }
 
@@ -83,19 +86,23 @@ openvpn_setup()
     wget https://www.privateinternetaccess.com/openvpn/openvpn.zip
     unzip openvpn.zip
     cp crl.rsa.2048.pem ca.rsa.2048.crt /etc/openvpn/
+    grep "remote.*1198" ~/openvpn/*.ovpn | cut -d ":" -f 2 | cut -d " " -f 2 > $SCRIPT_DIR/pia-servers.txt
     cd $SCRIPT_DIR
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Create Modified PIA Configuration File for Split Tunneling${NC}\n"
     cp src/openvpn.conf /etc/openvpn/
+    if [ -n $PIA_SERVER ]; then
+        sed -i "s/^remote.*1198/remote $PIA_SERVER 1198/" /etc/openvpn/openvpn.conf
+    fi
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Make OpenVPN Auto Login on Service Start${NC}\n"
     if [ -n "$PIA_LOGIN" ]; then
         echo $PIA_LOGIN | sed "s/:/\n/" | tee /etc/openvpn/login.txt
     else
-        echo "pia-username" | tee /etc/openvpn/login.txt
-        echo "pia-password" | tee -a /etc/openvpn/login.txt
+        echo "piauser" | tee /etc/openvpn/login.txt
+        echo "piapwd" | tee -a /etc/openvpn/login.txt
     fi
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
@@ -143,7 +150,7 @@ openvpn_setup()
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Setup Keep Alive Script${NC}\n"
     cp src/vpn_keepalive.sh /etc/openvpn/
     chmod +x /etc/openvpn/vpn_keepalive.sh
-    sed -i "s|^LOGFILE=.*|LOGFILE=$SCRIPT_DIR/vpn_keepalive.log|" /etc/openvpn/vpn_keepalive.sh 
+    sed -i "s|^LOGFILE=.*|LOGFILE=$SCRIPT_DIR/vpn_keepalive.log|" /etc/openvpn/vpn_keepalive.sh
 
     echo "$(date '+%Y-%m-%d %H:%M:%S') openvpn_setup: completed" >> $LOG_FILE
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
@@ -220,12 +227,12 @@ deluge_setup()
         DELUGE_USER=$(echo "$DELUGE_LOGIN" | cut -d ":" -f 1)
         DELUGE_PW=$(echo "$DELUGE_LOGIN" | cut -d ":" -f 2)
         echo "$DELUGE_LOGIN:10" >> /home/vpn/.config/deluge/auth
-        sed -i "s/^DELUGEUSER=.*/DELUGEUSER=$DELUGE_USER/g" /etc/openvpn/portforward.sh
+        sed -i "s/^DELUGEUSER=.*/DELUGEUSER=$DELUGE_USER/" /etc/openvpn/portforward.sh
         sed -i "s/^DELUGEPASS=.*/DELUGEPASS=$DELUGE_PW/" /etc/openvpn/portforward.sh
     else
         echo "deluge:deluge:10" >> /home/vpn/.config/deluge/auth
     fi
-    if [ -n "$PIA_LOGIN" ]; then  
+    if [ -n "$PIA_LOGIN" ]; then
         PIA_USER=$(echo "$PIA_LOGIN" | cut -d ":" -f 1)
         PIA_PW=$(echo "$PIA_LOGIN" | cut -d ":" -f 2)
         sed -i "s/^USERNAME=.*/USERNAME=$PIA_USER/" /etc/openvpn/portforward.sh
@@ -277,7 +284,7 @@ trap error ERR
 setup_var
 
 # grab optional arguments
-while getopts ":hi:f:np:d:" opt; do
+while getopts ":hi:f:np:d:s:" opt; do
     case ${opt} in
         i)  LOCAL_IP=$OPTARG
             ;;
@@ -288,6 +295,12 @@ while getopts ":hi:f:np:d:" opt; do
         p)  PIA_LOGIN=$OPTARG
             ;;
         d)  DELUGE_LOGIN=$OPTARG
+            ;;
+        s)  PIA_SERVER=$OPTARG
+            if [ -z "$(grep "^$PIA_SERVER\$" pia-servers.txt)" ]; then
+                echo "Invalid PIA server: $OPTARG" 1>&2
+                exit 1
+            fi
             ;;
         h)
             usage
