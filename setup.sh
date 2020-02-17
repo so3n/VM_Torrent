@@ -86,7 +86,7 @@ openvpn_setup()
     wget https://www.privateinternetaccess.com/openvpn/openvpn.zip
     unzip openvpn.zip
     cp crl.rsa.2048.pem ca.rsa.2048.crt /etc/openvpn/
-    grep "remote.*1198" ~/openvpn/*.ovpn | cut -d ":" -f 2 | cut -d " " -f 2 > $SCRIPT_DIR/pia-servers.txt
+    grep "remote.*1198" /tmp/*.ovpn | cut -d ":" -f 2 | cut -d " " -f 2 > $SCRIPT_DIR/pia-servers.txt
     cd $SCRIPT_DIR
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
@@ -128,8 +128,8 @@ openvpn_setup()
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') iptables Script for vpn User${NC}\n"
     cp src/iptables.sh /etc/openvpn/
     chmod +x /etc/openvpn/iptables.sh
-    sed -i 's/^export LOCALIP=".*/export LOCALIP="$LOCAL_IP"/' /etc/openvpn/iptables.sh
-    sed -i 's/^export NETIF=".*/export NETIF="$NET_IF"/' /etc/openvpn/iptables.sh
+    sed -i 's/^export LOCALIP=".*/export LOCALIP="'$LOCAL_IP'"/' /etc/openvpn/iptables.sh
+    sed -i 's/^export NETIF=".*/export NETIF="'$NET_IF'"/' /etc/openvpn/iptables.sh
     echo -e "\n${GREEN}$(date '+%Y-%m-%d %H:%M:%S') Done${NC}\n"
 
     echo -e "\n${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') Routing Rules Script for the Marked Packets${NC}\n"
